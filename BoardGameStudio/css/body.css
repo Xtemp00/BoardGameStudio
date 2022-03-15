@@ -1,0 +1,119 @@
+h1 {
+ font-size: 200%;
+ color: navy;
+ text-align: center;
+ }
+ h2 {
+  font-size: 180%;
+  color: navy;
+  text-align: center;
+  }
+h3 {
+ font-size: 120%;
+ color: black;
+ text-align: center;
+
+
+
+
+ }
+ p,ul,li,td {
+  color: black;
+  font-size: 120%;
+  }
+ a:visited {
+
+  }
+ a:hover {
+  color: #5077f0;
+  text-decoration: none;
+
+ }
+ a:active, a:focus {
+  color: #5077f0;
+ }
+.recherche {
+
+}
+.Raids {
+
+  border-collapse: collapse;
+}
+.ARaids {
+  text-rendering: geometricPrecision;
+  float: left;
+  width: 75%;
+  background: border-box #c9cedd;
+  border-radius: 30px;
+  border: 2px solid black;
+  color: black;
+  text-align: left;
+
+}
+.BRaids {
+  text-rendering: geometricPrecision;
+  background: border-box #c9cedd;
+  border-radius: 30px;
+  border: 2px solid black;
+
+
+}
+.NJeu {
+  background: border-box #939aaf;
+  border-radius: 30px;
+  border: 2px solid black;
+}
+.JDM {
+  text-align: center;
+  background: border-box #c9cedd;
+  border-radius: 30px;
+  border: 2px solid black;
+}
+.JDM:focus {
+  cursor: pointer;
+}
+.recherche {
+
+
+
+}
+.search {
+  text-align: center;
+}
+.JDispo {
+  text-align: center;
+  background: border-box #c9cedd;
+  border-radius: 30px;
+  border: 2px solid black;
+  width: 53%;
+  float: left;
+}
+.Info {
+  text-align: center;
+  background: border-box #c9cedd;
+  border-radius: 30px;
+  border: 2px solid black;
+  float: left;
+  width: 46%
+
+}
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+html, body {
+  margin: 0; padding: 0 ;
+  font-family: 'Lato';
+  background-image: url("../image/background2.png");
+  overflow-x: hidden;
+}
+.inner {
+  width: 80%;
+  margin: auto;
+}
+.Selection {
+  text-align: center;
+  background: border-box #c9cedd;
+  border-radius: 30px;
+  border: 2px solid black;
+  float: left;
+  width: 46%
+}

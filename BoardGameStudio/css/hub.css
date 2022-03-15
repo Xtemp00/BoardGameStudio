@@ -1,0 +1,8 @@
+.barrecherche {
+  color: navy;
+  text-align: right;
+  background: border-box #c9cedd;
+  border-radius: 20px;
+  border: 2px solid black;
+  float: right;
+}

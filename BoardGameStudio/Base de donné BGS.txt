@@ -1,0 +1,23 @@
+triage 
+
+prix
+année de sortie
+nombre de joueur
+temps de jeu
+complexité
+type de jeu
+
+
+information
+
+prix
+année de sortie
+nombre de joueur
+temps de jeu
+complexité
+type de jeu
+description
+lien regle video
+
+
+but du script crée une base donnée sur chaque jeux et crée un triage pour permettre d'avoir une liste de jeu plus reduite et pouvoir faire son choix 
