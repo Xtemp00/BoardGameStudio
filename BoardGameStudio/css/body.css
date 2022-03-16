@@ -12,17 +12,10 @@ h3 {
  font-size: 120%;
  color: black;
  text-align: center;
-
-
-
-
  }
  p,ul,li,td {
   color: black;
   font-size: 120%;
-  }
- a:visited {
-
   }
  a:hover {
   color: #5077f0;
@@ -32,9 +25,7 @@ h3 {
  a:active, a:focus {
   color: #5077f0;
  }
-.recherche {
 
-}
 .Raids {
 
   border-collapse: collapse;
@@ -71,11 +62,6 @@ h3 {
 }
 .JDM:focus {
   cursor: pointer;
-}
-.recherche {
-
-
-
 }
 .search {
   text-align: center;
