@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pierre Papier Ciseaux - Battle Royale</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a1a;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #ui-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    #ui-overlay > * {
+      pointer-events: auto;
+    }
+
+    #scoreboard {
+      display: flex;
+      gap: 30px;
+      padding: 12px 30px;
+      background: rgba(10, 10, 26, 0.85);
+      border-radius: 0 0 16px 16px;
+      font-size: 22px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-top: none;
+    }
+
+    .score-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 70px;
+      justify-content: center;
+    }
+
+    .score-item .emoji { font-size: 28px; }
+    .score-item .count { font-weight: bold; font-size: 24px; }
+
+    .count-rock { color: #e74c3c; }
+    .count-paper { color: #3498db; }
+    .count-scissors { color: #2ecc71; }
+
+    #setup-screen {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(10, 10, 26, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      gap: 30px;
+    }
+
+    #setup-screen h1 {
+      font-size: 42px;
+      background: linear-gradient(135deg, #e74c3c, #3498db, #2ecc71);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #setup-screen .subtitle {
+      color: #888;
+      font-size: 16px;
+      margin-top: -20px;
+    }
+
+    .setup-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .setup-group label {
+      font-size: 18px;
+      color: #ccc;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    #count-slider {
+      width: 250px;
+      accent-color: #3498db;
+      cursor: pointer;
+    }
+
+    #count-value {
+      font-size: 28px;
+      font-weight: bold;
+      min-width: 50px;
+      text-align: center;
+      color: #3498db;
+    }
+
+    #speed-slider {
+      width: 200px;
+      accent-color: #2ecc71;
+      cursor: pointer;
+    }
+
+    #speed-value {
+      font-size: 20px;
+      font-weight: bold;
+      min-width: 40px;
+      text-align: center;
+      color: #2ecc71;
+    }
+
+    #start-btn, #restart-btn {
+      padding: 14px 50px;
+      font-size: 22px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #e74c3c, #3498db, #2ecc71);
+      color: #fff;
+      font-weight: bold;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    #start-btn:hover, #restart-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(52, 152, 219, 0.5);
+    }
+
+    #restart-btn {
+      position: absolute;
+      bottom: 30px;
+      z-index: 10;
+      padding: 10px 30px;
+      font-size: 16px;
+    }
+
+    #winner-banner {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 50;
+      text-align: center;
+      animation: popIn 0.5s ease-out;
+    }
+
+    #winner-banner .winner-emoji {
+      font-size: 100px;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    #winner-banner .winner-text {
+      font-size: 48px;
+      font-weight: bold;
+      text-shadow: 0 0 30px rgba(255,255,255,0.5);
+    }
+
+    @keyframes popIn {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      70% { transform: translate(-50%, -50%) scale(1.1); }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .preview-emojis {
+      font-size: 60px;
+      display: flex;
+      gap: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="setup-screen">
+    <h1>Pierre Papier Ciseaux</h1>
+    <p class="subtitle">Battle Royale</p>
+    <div class="preview-emojis">
+      <span>🪨</span><span>📄</span><span>✂️</span>
+    </div>
+    <div class="setup-group">
+      <label>Nombre de formes par type</label>
+      <div class="slider-row">
+        <input type="range" id="count-slider" min="3" max="150" value="33">
+        <span id="count-value">33</span>
+      </div>
+      <span style="color:#666; font-size:14px;">Total : <span id="total-count">99</span> formes</span>
+    </div>
+    <div class="setup-group">
+      <label>Vitesse</label>
+      <div class="slider-row">
+        <span style="color:#888">🐢</span>
+        <input type="range" id="speed-slider" min="1" max="5" value="3" step="0.5">
+        <span style="color:#888">🐇</span>
+        <span id="speed-value">3</span>
+      </div>
+    </div>
+    <button id="start-btn">Lancer la bataille !</button>
+  </div>
+
+  <div id="ui-overlay">
+    <div id="scoreboard" style="display:none;">
+      <div class="score-item"><span class="emoji">🪨</span><span class="count count-rock" id="rock-count">0</span></div>
+      <div class="score-item"><span class="emoji">📄</span><span class="count count-paper" id="paper-count">0</span></div>
+      <div class="score-item"><span class="emoji">✂️</span><span class="count count-scissors" id="scissors-count">0</span></div>
+    </div>
+  </div>
+
+  <div id="winner-banner">
+    <span class="winner-emoji" id="winner-emoji"></span>
+    <span class="winner-text" id="winner-text"></span>
+  </div>
+
+  <button id="restart-btn" style="display:none;">Recommencer</button>
+
+  <canvas id="arena"></canvas>
+
+  <script>
+    const canvas = document.getElementById('arena');
+    const ctx = canvas.getContext('2d');
+
+    const TYPES = {
+      ROCK: 0,
+      PAPER: 1,
+      SCISSORS: 2
+    };
+
+    // Rock beats Scissors, Scissors beats Paper, Paper beats Rock
+    const BEATS = {
+      [TYPES.ROCK]: TYPES.SCISSORS,
+      [TYPES.SCISSORS]: TYPES.PAPER,
+      [TYPES.PAPER]: TYPES.ROCK
+    };
+
+    const EMOJIS = {
+      [TYPES.ROCK]: '🪨',
+      [TYPES.PAPER]: '📄',
+      [TYPES.SCISSORS]: '✂️'
+    };
+
+    const NAMES = {
+      [TYPES.ROCK]: 'Pierre',
+      [TYPES.PAPER]: 'Papier',
+      [TYPES.SCISSORS]: 'Ciseaux'
+    };
+
+    const COLORS = {
+      [TYPES.ROCK]: '#e74c3c',
+      [TYPES.PAPER]: '#3498db',
+      [TYPES.SCISSORS]: '#2ecc71'
+    };
+
+    let entities = [];
+    let running = false;
+    let animationId = null;
+    let baseSpeed = 3;
+    let entitySize = 20;
+
+    // --- Setup UI ---
+    const countSlider = document.getElementById('count-slider');
+    const countValue = document.getElementById('count-value');
+    const totalCount = document.getElementById('total-count');
+    const speedSlider = document.getElementById('speed-slider');
+    const speedValue = document.getElementById('speed-value');
+    const startBtn = document.getElementById('start-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const setupScreen = document.getElementById('setup-screen');
+    const scoreboard = document.getElementById('scoreboard');
+    const winnerBanner = document.getElementById('winner-banner');
+
+    countSlider.addEventListener('input', () => {
+      countValue.textContent = countSlider.value;
+      totalCount.textContent = countSlider.value * 3;
+    });
+
+    speedSlider.addEventListener('input', () => {
+      speedValue.textContent = speedSlider.value;
+    });
+
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', () => {
+      setupScreen.style.display = 'flex';
+      restartBtn.style.display = 'none';
+      scoreboard.style.display = 'none';
+      winnerBanner.style.display = 'none';
+      if (animationId) cancelAnimationFrame(animationId);
+      running = false;
+    });
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function startGame() {
+      const countPerType = parseInt(countSlider.value);
+      baseSpeed = parseFloat(speedSlider.value);
+
+      setupScreen.style.display = 'none';
+      scoreboard.style.display = 'flex';
+      restartBtn.style.display = 'block';
+      winnerBanner.style.display = 'none';
+
+      resizeCanvas();
+      initEntities(countPerType);
+      running = true;
+      gameLoop();
+    }
+
+    function initEntities(countPerType) {
+      entities = [];
+      const margin = 30;
+
+      for (let type = 0; type < 3; type++) {
+        for (let i = 0; i < countPerType; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = (0.5 + Math.random() * 0.5) * baseSpeed;
+          entities.push({
+            type: type,
+            x: margin + Math.random() * (canvas.width - margin * 2),
+            y: margin + Math.random() * (canvas.height - margin * 2),
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            size: entitySize
+          });
+        }
+      }
+    }
+
+    // --- Spatial grid for collision ---
+    function buildGrid(cellSize) {
+      const grid = {};
+      for (let i = 0; i < entities.length; i++) {
+        const e = entities[i];
+        const cx = Math.floor(e.x / cellSize);
+        const cy = Math.floor(e.y / cellSize);
+        const key = cx + ',' + cy;
+        if (!grid[key]) grid[key] = [];
+        grid[key].push(i);
+      }
+      return grid;
+    }
+
+    function getNeighbors(grid, x, y, cellSize) {
+      const cx = Math.floor(x / cellSize);
+      const cy = Math.floor(y / cellSize);
+      const result = [];
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          const key = (cx + dx) + ',' + (cy + dy);
+          if (grid[key]) {
+            for (const idx of grid[key]) {
+              result.push(idx);
+            }
+          }
+        }
+      }
+      return result;
+    }
+
+    function update() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const collisionDist = entitySize * 0.9;
+      const cellSize = collisionDist * 2;
+      const grid = buildGrid(cellSize);
+
+      // Track conversions to apply after iteration
+      const conversions = [];
+
+      for (let i = 0; i < entities.length; i++) {
+        const e = entities[i];
+
+        // Slight random direction change for organic movement
+        if (Math.random() < 0.02) {
+          const angle = Math.random() * Math.PI * 2;
+          const nudge = 0.3 * baseSpeed;
+          e.vx += Math.cos(angle) * nudge;
+          e.vy += Math.sin(angle) * nudge;
+        }
+
+        // Clamp speed
+        const speed = Math.sqrt(e.vx * e.vx + e.vy * e.vy);
+        const maxSpeed = baseSpeed * 1.5;
+        const minSpeed = baseSpeed * 0.4;
+        if (speed > maxSpeed) {
+          e.vx = (e.vx / speed) * maxSpeed;
+          e.vy = (e.vy / speed) * maxSpeed;
+        } else if (speed < minSpeed) {
+          e.vx = (e.vx / (speed || 1)) * minSpeed;
+          e.vy = (e.vy / (speed || 1)) * minSpeed;
+        }
+
+        // Move
+        e.x += e.vx;
+        e.y += e.vy;
+
+        // Bounce off walls
+        if (e.x < entitySize / 2) { e.x = entitySize / 2; e.vx = Math.abs(e.vx); }
+        if (e.x > w - entitySize / 2) { e.x = w - entitySize / 2; e.vx = -Math.abs(e.vx); }
+        if (e.y < entitySize / 2) { e.y = entitySize / 2; e.vy = Math.abs(e.vy); }
+        if (e.y > h - entitySize / 2) { e.y = h - entitySize / 2; e.vy = -Math.abs(e.vy); }
+
+        // Check collisions with nearby entities
+        const neighbors = getNeighbors(grid, e.x, e.y, cellSize);
+        for (const j of neighbors) {
+          if (j <= i) continue;
+          const other = entities[j];
+
+          const dx = other.x - e.x;
+          const dy = other.y - e.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < collisionDist) {
+            // Same type: just push apart
+            if (e.type === other.type) {
+              const overlap = collisionDist - dist;
+              const nx = dx / (dist || 1);
+              const ny = dy / (dist || 1);
+              e.x -= nx * overlap * 0.5;
+              e.y -= ny * overlap * 0.5;
+              other.x += nx * overlap * 0.5;
+              other.y += ny * overlap * 0.5;
+            } else {
+              // Determine winner
+              if (BEATS[e.type] === other.type) {
+                // e wins, other becomes e's type
+                conversions.push({ index: j, newType: e.type });
+              } else if (BEATS[other.type] === e.type) {
+                // other wins, e becomes other's type
+                conversions.push({ index: i, newType: other.type });
+              }
+
+              // Bounce both
+              const nx = dx / (dist || 1);
+              const ny = dy / (dist || 1);
+              e.vx -= nx * 1.5;
+              e.vy -= ny * 1.5;
+              other.vx += nx * 1.5;
+              other.vy += ny * 1.5;
+            }
+          }
+        }
+      }
+
+      // Apply conversions
+      for (const c of conversions) {
+        entities[c.index].type = c.newType;
+      }
+
+      // Update scoreboard
+      const counts = [0, 0, 0];
+      for (const e of entities) counts[e.type]++;
+      document.getElementById('rock-count').textContent = counts[TYPES.ROCK];
+      document.getElementById('paper-count').textContent = counts[TYPES.PAPER];
+      document.getElementById('scissors-count').textContent = counts[TYPES.SCISSORS];
+
+      // Check winner
+      const alive = counts.filter(c => c > 0);
+      if (alive.length === 1) {
+        const winnerType = counts.indexOf(counts.find(c => c > 0));
+        showWinner(winnerType);
+        running = false;
+      }
+    }
+
+    function showWinner(type) {
+      document.getElementById('winner-emoji').textContent = EMOJIS[type];
+      document.getElementById('winner-text').textContent = NAMES[type] + ' gagne !';
+      document.getElementById('winner-text').style.color = COLORS[type];
+      winnerBanner.style.display = 'block';
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw subtle grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+      ctx.lineWidth = 1;
+      const gridStep = 50;
+      for (let x = 0; x < canvas.width; x += gridStep) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += gridStep) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // Draw entities
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = entitySize + 'px serif';
+
+      for (const e of entities) {
+        // Glow effect
+        ctx.shadowColor = COLORS[e.type];
+        ctx.shadowBlur = 8;
+        ctx.fillText(EMOJIS[e.type], e.x, e.y);
+      }
+
+      ctx.shadowBlur = 0;
+    }
+
+    function gameLoop() {
+      if (!running) return;
+      update();
+      draw();
+      animationId = requestAnimationFrame(gameLoop);
+    }
+  </script>
+</body>
+</html>
